@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlockChain Explorer — Block Simulator</title>
+  <meta name="description" content="Interactive blockchain mining simulator using SHA-256. Mine blocks, observe chain integrity, and see how tampering breaks the chain." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>" />
+</head>
+<body>
+
+<!-- Animated Background Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<div class="page-wrapper">
+
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo" aria-label="BlockChain Explorer Home">
+        <span class="logo-icon" aria-hidden="true">⛓️</span>
+        <span>BlockChain Explorer</span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="navbar-links" id="navLinks" role="list">
+        <li><a href="index.html">🏠 Home</a></li>
+        <li><a href="concepts.html">📚 Concepts</a></li>
+        <li><a href="prices.html">💹 Live Prices</a></li>
+        <li><a href="simulator.html" class="active" aria-current="page">⚙️ Block Simulator</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== PAGE HEADER ===== -->
+  <header style="padding: 64px 24px 20px;" aria-labelledby="sim-title">
+    <div class="container" style="text-align:center;">
+      <div class="hero-eyebrow fade-in" style="display:inline-flex;margin-bottom:16px;">
+        <span>⚙️</span>
+        <span>Interactive Demo</span>
+      </div>
+      <h1 class="section-title fade-in fade-in-delay-1" id="sim-title">
+        Block <span class="gradient-text">Mining Simulator</span>
+      </h1>
+      <p class="section-subtitle fade-in fade-in-delay-2">
+        Mine blocks using SHA-256 proof-of-work and observe how editing
+        one block invalidates the entire chain.
+      </p>
+    </div>
+  </header>
+
+  <!-- ===== SIMULATOR MAIN ===== -->
+  <main class="section" style="padding-top:10px;" aria-label="Blockchain simulator">
+    <div class="container">
+      <div class="simulator-layout">
+        <div class="blocks-container" id="blocksContainer">
+
+          <!-- ============================================================
+               BLOCK 1
+               ============================================================ -->
+          <div class="sim-block-wrapper fade-in fade-in-delay-1">
+            <div class="sim-block" id="block1" role="region" aria-labelledby="block1-title">
+              <div class="sim-block-header">
+                <div class="sim-block-title">
+                  <div class="sim-block-num-badge" aria-hidden="true">1</div>
+                  <h2 style="font-size:1.05rem;" id="block1-title">Block #1</h2>
+                </div>
+                <div class="sim-block-status">
+                  <span class="badge badge-pending" id="block1-badge" aria-label="Block 1 status">
+                    ⏳ Pending
+                  </span>
+                </div>
+              </div>
+
+              <!-- Fields -->
+              <div class="field-group">
+                <label for="b1-data">Block Data</label>
+                <textarea id="b1-data" rows="2" placeholder="Enter transaction data..." aria-label="Block 1 data input">Hello, Blockchain!</textarea>
+              </div>
+
+              <div class="fields-row">
+                <div class="field-group">
+                  <label for="b1-prevhash">Previous Hash</label>
+                  <input type="text" id="b1-prevhash" value="GENESIS" readonly aria-label="Block 1 previous hash (fixed genesis)" />
+                </div>
+                <div class="field-group">
+                  <label for="b1-nonce">Nonce</label>
+                  <input type="text" id="b1-nonce" value="0" readonly aria-label="Block 1 nonce" />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="b1-hash">Hash (SHA-256)</label>
+                <input type="text" id="b1-hash" class="hash-display" value="—" readonly aria-label="Block 1 computed hash" />
+              </div>
+
+              <!-- Footer -->
+              <div class="sim-block-footer">
+                <div class="mine-stats" id="block1-stats" aria-live="polite">
+                  <div class="mine-stat">
+                    <span class="mine-stat-label">Time</span>
+                    <span class="mine-stat-value" id="b1-time">—</span>
+                  </div>
+                  <div class="mine-stat">
+                    <span class="mine-stat-label">Attempts</span>
+                    <span class="mine-stat-value" id="b1-attempts">—</span>
+                  </div>
+                </div>
+                <button class="btn btn-primary" id="mineBtn1" onclick="mineBlock(1)" aria-label="Mine Block 1">
+                  ⛏️ Mine Block
+                </button>
+              </div>
+
+            </div><!-- end sim-block #1 -->
+          </div>
+
+          <!-- Chain Connector -->
+          <div class="chain-connector" id="chainConnector" aria-hidden="true">
+            <div class="connector-line" id="connectorLine"></div>
+            <div class="connector-arrow" id="connectorArrow"></div>
+          </div>
+
+          <!-- Chain Broken Alert -->
+          <div class="chain-alert" id="chainAlert" role="alert" aria-live="assertive">
+            ⛓️💥 <strong>Chain Broken:</strong> Block 1 has changed, so all following blocks are now invalid.
+            Re-mine Block 1, then re-mine Block 2 to restore the valid chain.
+          </div>
+
+          <!-- ============================================================
+               BLOCK 2
+               ============================================================ -->
+          <div class="sim-block-wrapper fade-in fade-in-delay-2">
+            <div class="sim-block" id="block2" role="region" aria-labelledby="block2-title">
+              <div class="sim-block-header">
+                <div class="sim-block-title">
+                  <div class="sim-block-num-badge" aria-hidden="true">2</div>
+                  <h2 style="font-size:1.05rem;" id="block2-title">Block #2</h2>
+                </div>
+                <div class="sim-block-status">
+                  <span class="badge badge-pending" id="block2-badge" aria-label="Block 2 status">
+                    ⏳ Pending
+                  </span>
+                </div>
+              </div>
+
+              <!-- Fields -->
+              <div class="field-group">
+                <label for="b2-data">Block Data</label>
+                <textarea id="b2-data" rows="2" placeholder="Enter transaction data..." aria-label="Block 2 data input">Transfer: 0.5 BTC</textarea>
+              </div>
+
+              <div class="fields-row">
+                <div class="field-group">
+                  <label for="b2-prevhash">Previous Hash <span style="color:var(--accent-cyan);font-size:0.7rem;">(from Block 1)</span></label>
+                  <input type="text" id="b2-prevhash" value="Mine Block 1 first..." readonly aria-label="Block 2 previous hash (auto-filled from block 1)" />
+                </div>
+                <div class="field-group">
+                  <label for="b2-nonce">Nonce</label>
+                  <input type="text" id="b2-nonce" value="0" readonly aria-label="Block 2 nonce" />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="b2-hash">Hash (SHA-256)</label>
+                <input type="text" id="b2-hash" class="hash-display" value="—" readonly aria-label="Block 2 computed hash" />
+              </div>
+
+              <!-- Footer -->
+              <div class="sim-block-footer">
+                <div class="mine-stats" id="block2-stats" aria-live="polite">
+                  <div class="mine-stat">
+                    <span class="mine-stat-label">Time</span>
+                    <span class="mine-stat-value" id="b2-time">—</span>
+                  </div>
+                  <div class="mine-stat">
+                    <span class="mine-stat-label">Attempts</span>
+                    <span class="mine-stat-value" id="b2-attempts">—</span>
+                  </div>
+                </div>
+                <button class="btn btn-primary" id="mineBtn2" onclick="mineBlock(2)" aria-label="Mine Block 2">
+                  ⛏️ Mine Block
+                </button>
+              </div>
+
+            </div><!-- end sim-block #2 -->
+          </div>
+
+          <!-- ============================================================
+               EDUCATIONAL PANEL
+               ============================================================ -->
+          <aside class="glass-card edu-panel fade-in fade-in-delay-3" aria-labelledby="edu-title">
+            <h3 id="edu-title">
+              <span aria-hidden="true">💡</span> How Mining Works
+            </h3>
+            <ol class="edu-steps">
+              <li>
+                <span class="edu-step-num" aria-hidden="true">1</span>
+                <span>Mining searches for a <strong>nonce</strong> that produces a valid hash when combined with the block data and previous hash.</span>
+              </li>
+              <li>
+                <span class="edu-step-num" aria-hidden="true">2</span>
+                <span>A valid hash begins with <strong style="color:var(--accent-cyan);">"00"</strong> — this is the proof-of-work difficulty target.</span>
+              </li>
+              <li>
+                <span class="edu-step-num" aria-hidden="true">3</span>
+                <span>Changing <strong>any data</strong> in a block completely changes its hash due to the avalanche effect of SHA-256.</span>
+              </li>
+              <li>
+                <span class="edu-step-num" aria-hidden="true">4</span>
+                <span>Since each block stores the <strong>previous block's hash</strong>, altering one block breaks the chain — all subsequent blocks become invalid.</span>
+              </li>
+              <li>
+                <span class="edu-step-num" aria-hidden="true">5</span>
+                <span>To restore the chain, every block after the tampered one must be <strong>re-mined</strong>. This is why blockchain is tamper-resistant.</span>
+              </li>
+            </ol>
+
+            <!-- Difficulty info -->
+            <div style="margin-top:20px;padding:16px;background:rgba(59,130,246,0.08);border-radius:var(--radius-sm);border:1px solid rgba(59,130,246,0.2);">
+              <p style="font-size:0.82rem;color:var(--text-secondary);margin:0;line-height:1.65;">
+                <strong style="color:var(--accent-blue);">Current Difficulty:</strong> Hash must start with <code style="color:var(--accent-cyan);">"00"</code>
+                (2 leading zeros). Real Bitcoin requires ~72 leading zeros, making it computationally exponentially harder.
+              </p>
+            </div>
+          </aside>
+
+        </div><!-- end blocks-container -->
+      </div><!-- end simulator-layout -->
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-name">⛓️ BlockChain Explorer</div>
+      <div class="footer-meta">
+        <span>👤 <strong>Parth Soni</strong></span>
+        <a href="https://github.com/" target="_blank" rel="noopener noreferrer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.54-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.05.13 3 .4 2.28-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.21.7.82.58C20.56 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+          GitHub
+        </a>
+        <span class="footer-batch">🎓 Batch: Web3-2025</span>
+      </div>
+      <p class="footer-copy">© 2025 Parth Soni. All rights reserved. Built with ❤️ for Web3 Education.</p>
+    </div>
+  </footer>
+
+</div><!-- end page-wrapper -->
+
+<script src="js/main.js"></script>
+<script src="js/simulator.js"></script>
+</body>
+</html>
