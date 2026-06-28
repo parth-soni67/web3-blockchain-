@@ -125,7 +125,7 @@ README.md
 ## 👤 Author
 
 **Parth Soni**  
-🎓 Batch: LDRP-itr
+🎓 Batch: LDRP-ITR
 🔗 [GitHub](https://github.com/parth-soni67)
 
 ---
